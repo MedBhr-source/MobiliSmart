@@ -1,0 +1,202 @@
+version: '3.8'
+
+services:
+  # ─────────────────────────────────────────────
+  # PostgreSQL + PostGIS
+  # ─────────────────────────────────────────────
+  postgres:
+    image: postgis/postgis:15-3.3
+    container_name: mobilismart-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-mobilismart}
+      POSTGRES_USER: ${DB_USERNAME:-mobilismart}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-secret_password_change_me}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - mobilismart-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-mobilismart}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─────────────────────────────────────────────
+  # Redis (Cache + Queue)
+  # ─────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: mobilismart-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - mobilismart-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─────────────────────────────────────────────
+  # Backend — Laravel 11 + Octane (Swoole)
+  # ─────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: mobilismart-backend
+    restart: unless-stopped
+    environment:
+      APP_NAME: ${APP_NAME:-Mobilismart}
+      APP_ENV: ${APP_ENV:-local}
+      APP_DEBUG: ${APP_DEBUG:-true}
+      APP_KEY: ${APP_KEY:-}
+      APP_URL: ${APP_URL:-http://localhost}
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: ${DB_DATABASE:-mobilismart}
+      DB_USERNAME: ${DB_USERNAME:-mobilismart}
+      DB_PASSWORD: ${DB_PASSWORD:-secret_password_change_me}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      CACHE_DRIVER: redis
+      QUEUE_CONNECTION: redis
+      SESSION_DRIVER: redis
+      SANCTUM_STATEFUL_DOMAINS: ${SANCTUM_STATEFUL_DOMAINS:-localhost:3000,localhost}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      AI_SERVICE_URL: ${AI_SERVICE_URL:-http://ai-service:8001}
+      MAPBOX_ACCESS_TOKEN: ${MAPBOX_ACCESS_TOKEN:-}
+      NAVITIA_API_KEY: ${NAVITIA_API_KEY:-}
+      PUSHER_APP_ID: ${PUSHER_APP_ID:-}
+      PUSHER_APP_KEY: ${PUSHER_APP_KEY:-}
+      PUSHER_APP_SECRET: ${PUSHER_APP_SECRET:-}
+      PUSHER_APP_CLUSTER: ${PUSHER_APP_CLUSTER:-eu}
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    volumes:
+      - ./backend:/var/www/html
+      - /var/www/html/vendor
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - mobilismart-network
+
+  # ─────────────────────────────────────────────
+  # Frontend — Next.js 14
+  # ─────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: mobilismart-frontend
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000/api}
+      NEXT_PUBLIC_MAPBOX_TOKEN: ${NEXT_PUBLIC_MAPBOX_TOKEN:-}
+      NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME:-Mobilismart}
+      NEXT_PUBLIC_PUSHER_KEY: ${NEXT_PUBLIC_PUSHER_KEY:-}
+      NEXT_PUBLIC_PUSHER_CLUSTER: ${NEXT_PUBLIC_PUSHER_CLUSTER:-eu}
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      - backend
+    networks:
+      - mobilismart-network
+
+  # ─────────────────────────────────────────────
+  # AI Service — FastAPI (Python)
+  # ─────────────────────────────────────────────
+  ai-service:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    container_name: mobilismart-ai
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://${DB_USERNAME:-mobilismart}:${DB_PASSWORD:-secret_password_change_me}@postgres:5432/${DB_DATABASE:-mobilismart}
+      REDIS_URL: redis://redis:6379/1
+      MODEL_PATH: /app/models
+    ports:
+      - "${AI_SERVICE_PORT:-8001}:8001"
+    volumes:
+      - ./ai-service:/app
+      - ai_models:/app/models
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - mobilismart-network
+
+  # ─────────────────────────────────────────────
+  # Nginx Reverse Proxy
+  # ─────────────────────────────────────────────
+  nginx:
+    image: nginx:alpine
+    container_name: mobilismart-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - mobilismart-network
+
+  # ─────────────────────────────────────────────
+  # Queue Worker (Laravel)
+  # ─────────────────────────────────────────────
+  queue-worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: mobilismart-queue
+    restart: unless-stopped
+    command: php artisan queue:work redis --sleep=3 --tries=3 --max-time=3600
+    environment:
+      APP_ENV: ${APP_ENV:-local}
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: ${DB_DATABASE:-mobilismart}
+      DB_USERNAME: ${DB_USERNAME:-mobilismart}
+      DB_PASSWORD: ${DB_PASSWORD:-secret_password_change_me}
+      REDIS_HOST: redis
+      QUEUE_CONNECTION: redis
+    volumes:
+      - ./backend:/var/www/html
+      - /var/www/html/vendor
+    depends_on:
+      - backend
+    networks:
+      - mobilismart-network
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  ai_models:
+    driver: local
+
+networks:
+  mobilismart-network:
+    driver: bridge

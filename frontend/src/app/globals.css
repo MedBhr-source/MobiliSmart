@@ -1,0 +1,193 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@layer base {
+  :root {
+    --gradient-brand: linear-gradient(135deg, #2aa2ff 0%, #1484f5 50%, #0d6de1 100%);
+    --gradient-eco: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    --gradient-dark: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+    --glass-bg: rgba(255, 255, 255, 0.08);
+    --glass-border: rgba(255, 255, 255, 0.12);
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply font-sans antialiased;
+    background: #050a18;
+    color: #e2e8f0;
+  }
+}
+
+@layer components {
+  /* ─── Glass Card ─────────────────────────── */
+  .glass-card {
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 1.25rem;
+    transition: all 0.3s ease;
+  }
+
+  .glass-card:hover {
+    border-color: rgba(42, 162, 255, 0.25);
+    box-shadow: 0 0 30px rgba(42, 162, 255, 0.08);
+  }
+
+  /* ─── Glass Card Light ──────────────────── */
+  .glass-card-light {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 1rem;
+  }
+
+  /* ─── Gradient Button ───────────────────── */
+  .btn-brand {
+    @apply relative px-6 py-3 rounded-xl font-semibold text-white overflow-hidden transition-all duration-300;
+    background: linear-gradient(135deg, #2aa2ff 0%, #0d6de1 100%);
+    box-shadow: 0 4px 15px rgba(42, 162, 255, 0.3);
+  }
+
+  .btn-brand:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(42, 162, 255, 0.45);
+  }
+
+  .btn-brand:active {
+    transform: translateY(0);
+  }
+
+  .btn-eco {
+    @apply relative px-6 py-3 rounded-xl font-semibold text-white overflow-hidden transition-all duration-300;
+    background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+  }
+
+  .btn-eco:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.45);
+  }
+
+  /* ─── Input ─────────────────────────────── */
+  .input-glass {
+    @apply w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-surface-400 focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-400/20 transition-all duration-200;
+  }
+
+  /* ─── Mode Badge ────────────────────────── */
+  .mode-badge {
+    @apply inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-200;
+  }
+
+  .mode-badge-metro {
+    @apply mode-badge bg-blue-500/15 text-blue-400 border border-blue-500/20;
+  }
+
+  .mode-badge-bus {
+    @apply mode-badge bg-emerald-500/15 text-emerald-400 border border-emerald-500/20;
+  }
+
+  .mode-badge-bike {
+    @apply mode-badge bg-amber-500/15 text-amber-400 border border-amber-500/20;
+  }
+
+  .mode-badge-walk {
+    @apply mode-badge bg-purple-500/15 text-purple-400 border border-purple-500/20;
+  }
+
+  .mode-badge-tram {
+    @apply mode-badge bg-pink-500/15 text-pink-400 border border-pink-500/20;
+  }
+
+  /* ─── Crowd Indicator ───────────────────── */
+  .crowd-dot {
+    @apply w-2.5 h-2.5 rounded-full;
+  }
+
+  .crowd-1 { @apply bg-emerald-400; }
+  .crowd-2 { @apply bg-green-400; }
+  .crowd-3 { @apply bg-yellow-400; }
+  .crowd-4 { @apply bg-orange-400; }
+  .crowd-5 { @apply bg-red-400; }
+
+  /* ─── Shimmer loading ───────────────────── */
+  .shimmer {
+    background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.03) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* ─── Ambient glow ──────────────────────── */
+  .ambient-glow {
+    position: fixed;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: 0.15;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .ambient-glow-blue {
+    background: #2aa2ff;
+    top: -200px;
+    right: -200px;
+  }
+
+  .ambient-glow-green {
+    background: #10b981;
+    bottom: -200px;
+    left: -200px;
+  }
+
+  /* ─── Scrollbar ─────────────────────────── */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.25);
+  }
+}
+
+/* ─── Mapbox overrides ──────────────────── */
+.mapboxgl-map {
+  border-radius: 1.25rem;
+}
+
+.mapboxgl-ctrl-group {
+  background: rgba(15, 23, 42, 0.8) !important;
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 0.75rem !important;
+}
+
+.mapboxgl-ctrl-group button {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.mapboxgl-ctrl-group button + button {
+  border-top-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.mapboxgl-ctrl-attrib-inner {
+  color: rgba(255, 255, 255, 0.3) !important;
+}

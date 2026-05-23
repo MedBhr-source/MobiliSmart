@@ -1,0 +1,39 @@
+{
+  "name": "Mobilismart — Mobilité Urbaine Intelligente",
+  "short_name": "Mobilismart",
+  "description": "Planifiez vos déplacements multimodaux avec intelligence artificielle",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#050a18",
+  "theme_color": "#2aa2ff",
+  "orientation": "portrait-primary",
+  "lang": "fr",
+  "categories": ["transportation", "navigation", "lifestyle"],
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Planifier un trajet",
+      "url": "/plan",
+      "description": "Planifier un itinéraire multimodal"
+    },
+    {
+      "name": "Vue en temps réel",
+      "url": "/live",
+      "description": "Voir l'état du réseau en direct"
+    }
+  ]
+}

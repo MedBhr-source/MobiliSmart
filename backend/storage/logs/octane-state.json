@@ -1,0 +1,54 @@
+{
+    "masterProcessId": 9,
+    "managerProcessId": 10,
+    "state": {
+        "appName": "Mobilismart",
+        "host": "0.0.0.0",
+        "port": "8000",
+        "workers": 4,
+        "taskWorkers": 4,
+        "maxRequests": 500,
+        "publicPath": "\/var\/www\/html\/public",
+        "storagePath": "\/var\/www\/html\/storage",
+        "defaultServerOptions": {
+            "enable_coroutine": false,
+            "daemonize": false,
+            "log_file": "\/var\/www\/html\/storage\/logs\/swoole_http.log",
+            "log_level": 2,
+            "max_request": 500,
+            "package_max_length": 10485760,
+            "reactor_num": 4,
+            "send_yield": true,
+            "socket_buffer_size": 10485760,
+            "task_max_request": 500,
+            "task_worker_num": 4,
+            "worker_num": 4
+        },
+        "octaneConfig": {
+            "server": "swoole",
+            "https": false,
+            "listeners": [],
+            "warm": [],
+            "flush": [],
+            "tables": [],
+            "cache": {
+                "rows": 1000,
+                "bytes": 10000
+            },
+            "watch": [
+                "app",
+                "bootstrap",
+                "config\/**\/*.php",
+                "database\/**\/*.php",
+                "public\/**\/*.php",
+                "resources\/**\/*.php",
+                "routes",
+                "composer.lock",
+                ".env"
+            ],
+            "garbage": 50,
+            "max_execution_time": 30,
+            "state_file": "\/var\/www\/html\/storage\/logs\/octane-state.json"
+        }
+    }
+}
